@@ -1,0 +1,6 @@
+{
+  "name": "Fasting Progress",
+  "description": "A gamified fasting tracker highlighting health benefits, milestones, levels, and scientific research upfront.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
