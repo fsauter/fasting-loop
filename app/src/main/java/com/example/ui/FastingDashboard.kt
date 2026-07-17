@@ -49,6 +49,7 @@ fun FastingDashboard(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     val activeSession by viewModel.activeSession.collectAsState()
     val completedSessions by viewModel.completedSessions.collectAsState()
     val elapsedMillis by viewModel.currentElapsedMillis.collectAsState()
@@ -79,7 +80,10 @@ fun FastingDashboard(
             ) {
                 NavigationBarItem(
                     selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
+                    onClick = { 
+                        if (selectedTab != 0) haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                        selectedTab = 0 
+                    },
                     icon = { Icon(Icons.Default.Timer, contentDescription = "Tracker") },
                     label = { Text("Tracker", fontWeight = FontWeight.Bold) },
                     colors = NavigationBarItemDefaults.colors(
@@ -92,7 +96,10 @@ fun FastingDashboard(
                 )
                 NavigationBarItem(
                     selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
+                    onClick = { 
+                        if (selectedTab != 1) haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                        selectedTab = 1 
+                    },
                     icon = { Icon(Icons.Default.MenuBook, contentDescription = "Research") },
                     label = { Text("Science", fontWeight = FontWeight.Bold) },
                     colors = NavigationBarItemDefaults.colors(
@@ -105,7 +112,10 @@ fun FastingDashboard(
                 )
                 NavigationBarItem(
                     selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
+                    onClick = { 
+                        if (selectedTab != 2) haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                        selectedTab = 2 
+                    },
                     icon = { Icon(Icons.Default.History, contentDescription = "History") },
                     label = { Text("History", fontWeight = FontWeight.Bold) },
                     colors = NavigationBarItemDefaults.colors(
@@ -153,24 +163,29 @@ fun FastingDashboard(
                             elapsedMillis = elapsedMillis,
                             levelStats = levelStats,
                             onStartClick = {
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                 customStartTime = System.currentTimeMillis()
                                 viewModel.startFasting(customStartTime!!)
                             },
                             onEndClick = {
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                 customStartTime = activeSession?.startTime
                                 customEndTime = System.currentTimeMillis()
                                 showEndSessionDialog = true
                             },
                             onAdjustStart = {
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                 val currentStart = activeSession?.startTime ?: System.currentTimeMillis()
                                 showDateTimePicker(context, currentStart) { newTime ->
                                     viewModel.adjustActiveStartTime(newTime)
                                 }
                             },
                             onMilestoneClick = { milestone ->
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
                                 showMilestoneDetail = milestone
                             },
                             onOverallProgressClick = {
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
                                 showOverallProgressDialog = true
                             }
                         )
@@ -179,6 +194,7 @@ fun FastingDashboard(
                         ScienceTab(
                             elapsedMillis = if (activeSession != null) elapsedMillis else 0L,
                             onMilestoneClick = { milestone ->
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
                                 showMilestoneDetail = milestone
                             }
                         )
@@ -186,9 +202,16 @@ fun FastingDashboard(
                     2 -> {
                         HistoryTab(
                             completedSessions = completedSessions,
-                            onDeleteClick = { session -> viewModel.deleteSession(session) },
-                            onClearAllClick = { viewModel.clearAllHistory() },
+                            onDeleteClick = { session -> 
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                viewModel.deleteSession(session) 
+                            },
+                            onClearAllClick = { 
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                viewModel.clearAllHistory() 
+                            },
                             onAddManualClick = {
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                 customStartTime = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(16)
                                 customEndTime = System.currentTimeMillis()
                                 showAddManualSessionDialog = true
@@ -701,8 +724,14 @@ fun HeaderSection(levelStats: UserLevelStats) {
 
             Spacer(modifier = Modifier.height(6.dp))
 
+            val animatedLevelProgress by androidx.compose.animation.core.animateFloatAsState(
+                targetValue = levelStats.levelProgress,
+                animationSpec = androidx.compose.animation.core.tween(durationMillis = 1000, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+                label = "LevelProgress"
+            )
+
             LinearProgressIndicator(
-                progress = levelStats.levelProgress,
+                progress = animatedLevelProgress,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)
@@ -1112,7 +1141,7 @@ fun ScienceTab(
             fontWeight = FontWeight.ExtraBold
         )
         Text(
-            text = "Scientific Research Upfront",
+            text = "Your Body's Journey",
             style = MaterialTheme.typography.titleLarge,
             color = Color.White,
             fontWeight = FontWeight.Black
